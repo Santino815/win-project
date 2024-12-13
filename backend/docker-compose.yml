@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:14                  # Verwenden Sie die gewünschte PostgreSQL-Version
+    container_name: my_postgres
+    environment:
+      POSTGRES_USER: postgres           # Benutzername für die Datenbank
+      POSTGRES_PASSWORD: postgres       # Passwort für den Benutzer
+      POSTGRES_DB: postgres             # Name der Standard-Datenbank
+    volumes:
+      - postgres_data:/var/lib/postgresql/data # Persistente Speicherung der Datenbankdaten
+    ports:
+      - "5432:5432"                     # Port-Mapping (Host:Container)
+    restart: unless-stopped             # Automatischer Neustart bei Fehlern
+
+volumes:
+  postgres_data:

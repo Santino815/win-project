@@ -1,0 +1,21 @@
+{
+  "name": "svelte-boot-app",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@poppanator/sveltekit-svg": "^5.0.0",
+    "@sveltejs/vite-plugin-svelte": "^5.0.0",
+    "svelte": "^5.2.7",
+    "vite": "^6.0.1"
+  },
+  "dependencies": {
+    "svelte-image": "^0.2.9",
+    "swiper": "^11.1.15"
+  }
+}
