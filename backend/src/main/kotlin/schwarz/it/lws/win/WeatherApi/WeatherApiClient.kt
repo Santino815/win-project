@@ -1,50 +1,85 @@
 package schwarz.it.lws.win.WeatherApi
 
+import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestTemplate
+import schwarz.it.lws.win.ExceptionHandler.WeatherApiException
 import schwarz.it.lws.win.model.WeatherData
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 @Component
 class WeatherApiClient(private val restTemplate: RestTemplate) {
+    @Value("\${openweathermap.api.key}")
+    private lateinit var apiKey: String
+
+    private val logger = LoggerFactory.getLogger(WeatherApiClient::class.java)
+
     fun fetchWeatherData(city: String, days: Int): List<WeatherData> {
-        val apiKey = "90e5e34736b6f2076508eced09a1124b"
-        val response = restTemplate.getForObject(
-            "https://api.openweathermap.org/data/2.5/forecast/daily?q=$city&cnt=$days&appid=$apiKey&units=metric",
-            WeatherApiResponse::class.java
-        )
-        return response?.list?.mapIndexed { index, forecast ->
-            WeatherData(
-                id = 0,
-                city = city,
-                forecastDate = LocalDateTime.now().plusDays(index.toLong()),
-                temperature = forecast.temp.day,
-                minTemperature = forecast.temp.min,
-                humidity = forecast.humidity,
-                description = forecast.weather.firstOrNull()?.description ?: "",
-                iconCode = forecast.weather.firstOrNull()?.icon ?: "",
-                createdAt = LocalDateTime.now()
-            )
-        } ?: emptyList()
+        try {
+            val url = "https://api.openweathermap.org/data/2.5/forecast?q=$city&appid=$apiKey&units=metric"
+            val response: WeatherApiResponse = restTemplate.getForObject(url, WeatherApiResponse::class.java)
+                ?: throw WeatherApiException("Null response from API", null)
+
+            return response.list
+                .groupBy { it.dt_txt.substring(0, 10) }
+                .map { (date, forecasts) ->
+                    val minTemp = forecasts.minOf { it.main.temp_min }
+                    val maxTemp = forecasts.maxOf { it.main.temp_max }
+                    val avgTemp = forecasts.map { it.main.temp }.average()
+                    val avgHumidity = forecasts.map { it.main.humidity }.average().toInt()
+                    val mostFrequentDescription = forecasts.groupBy { it.weather.firstOrNull()?.description }
+                        .maxByOrNull { it.value.size }?.key ?: ""
+                    val mostFrequentIcon = forecasts.groupBy { it.weather.firstOrNull()?.icon }
+                        .maxByOrNull { it.value.size }?.key ?: ""
+
+                    WeatherData(
+                        id = 0,
+                        city = response.city.name,
+                        forecastDate = LocalDate.parse(date),
+                        temperature = avgTemp,
+                        minTemperature = minTemp,
+                        maxTemperature = maxTemp,
+                        humidity = avgHumidity,
+                        description = mostFrequentDescription,
+                        iconCode = mostFrequentIcon,
+                        createdAt = LocalDateTime.now()
+                    )
+                }
+                .take(days)
+        } catch (e: Exception) {
+            logger.error("Error fetching weather data: ${e.message}")
+            throw WeatherApiException("Failed to fetch weather data", e)
+        }
     }
 }
 
+
 data class WeatherApiResponse(
-    val list: List<DailyForecast>
+    val list: List<DailyForecast>,
+    val city: DailyForecastCity
 )
 
 data class DailyForecast(
-    val temp: Temperature,
+    val dt_txt: String,
+    val main: DailyForecastMain,
+    val weather: List<DailyForecastWeatherEntry>,
+)
+
+data class DailyForecastMain(
+    val temp: Double,
+    val temp_max: Double,
+    val temp_min: Double,
     val humidity: Int,
-    val weather: List<Weather>
+    val pressure: Int,
 )
 
-data class Temperature(
-    val day: Double,
-    val min: Double
-)
-
-data class Weather(
+data class DailyForecastWeatherEntry(
     val description: String,
-    val icon: String
+    val icon: String,
+)
+
+data class DailyForecastCity(
+    val name: String,
 )

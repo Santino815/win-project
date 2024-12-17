@@ -4,26 +4,21 @@ import org.springframework.boot.CommandLineRunner
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 import org.springframework.context.annotation.Bean
-import schwarz.it.lws.win.WeatherRepository.WeatherRepository
-import schwarz.it.lws.win.model.WeatherData
-import java.time.LocalDateTime
+import schwarz.it.lws.win.WeatherApi.WeatherApiClient
 
 @SpringBootApplication
 class WetterInformationsNewsApplication {
-
-    	@Bean
-        fun commandLineRunner( weatherRepository: WeatherRepository) : CommandLineRunner {
-            return CommandLineRunner {
-                val wd1 = WeatherData(0, "Heilbronn", LocalDateTime.now(), 5.1, 3.5, 70, "regnerisch", "1003d", LocalDateTime.now())
-                val wd2 = WeatherData(0, "Berlin", LocalDateTime.now(), 5.1, 3.5, 70, "regnerisch", "1003d", LocalDateTime.now())
-                val wd3 = WeatherData(0, "Mainz", LocalDateTime.now(), 5.1, 3.5, 70, "regnerisch", "1003d", LocalDateTime.now())
-
-                weatherRepository.saveAll( listOf(wd1,wd2,wd3))
-            }
+    @Bean
+    fun commandLineRunner(weatherApiClient: WeatherApiClient): CommandLineRunner {
+        return CommandLineRunner {
+            weatherApiClient.fetchWeatherData("Heilbronn", 3)
         }
     }
 
-    fun main(args: Array<String>) {
-        runApplication<WetterInformationsNewsApplication>(*args)
-    }
+}
+
+
+fun main(args: Array<String>) {
+    runApplication<WetterInformationsNewsApplication>(*args)
+}
 
