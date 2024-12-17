@@ -1,6 +1,7 @@
 package schwarz.it.lws.win.model
 
 import jakarta.persistence.*
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 @Entity
@@ -14,7 +15,7 @@ data class WeatherData(
     val city: String,
 
     @Column(nullable = false)
-    val forecastDate: LocalDateTime,
+    val forecastDate: LocalDate,
 
     @Column(nullable = false)
     val temperature: Double,
@@ -22,8 +23,7 @@ data class WeatherData(
     @Column(nullable = false)
     val minTemperature: Double,
 
-    @Column(nullable = false)
-    val humidity: Int,
+    val maxTemperature: Double,
 
     @Column(nullable = false)
     val description: String,
@@ -32,5 +32,8 @@ data class WeatherData(
     val iconCode: String,
 
     @Column(nullable = false)
-    val createdAt: LocalDateTime
+    val createdAt: LocalDateTime,
+
+    @Column(nullable = false)
+    val humidity: Int
 )

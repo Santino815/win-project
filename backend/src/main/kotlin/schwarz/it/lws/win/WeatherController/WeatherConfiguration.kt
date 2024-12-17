@@ -1,17 +1,19 @@
-import org.springframework.boot.web.client.RestTemplateBuilder
+package schwarz.it.lws.win
+
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.web.client.RestTemplate
-import kotlin.time.Duration
+import org.springframework.http.client.SimpleClientHttpRequestFactory
 
 @Configuration
 class RestTemplateConfig {
 
     @Bean
-    fun restTemplate(builder: RestTemplateBuilder): RestTemplate {
-        return builder
-            .setConnectTimeout(Duration.ofMillis(3000))
-            .setReadTimeout(Duration.ofMillis(3000))
-            .build()
+    fun restTemplate(): RestTemplate {
+        val factory = SimpleClientHttpRequestFactory()
+        factory.setConnectTimeout(3000)
+        factory.setReadTimeout(3000)
+        return RestTemplate(factory)
     }
+
 }
